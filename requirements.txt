@@ -1,0 +1,34 @@
+# ===== Core =====
+fastapi
+uvicorn[standard]
+gunicorn
+# ===== Database =====
+SQLAlchemy
+psycopg2-binary
+
+# ===== Auth / Security =====
+PyJWT
+passlib[bcrypt]
+passlib[argon2]
+python-multipart
+email-validator
+pytz
+
+# ===== Settings / Env =====
+pydantic
+pydantic-settings
+python-dotenv
+pydantic_settings
+# ===== Cache / Queue =====
+redis
+celery[redis]==5.3.4
+# ===== Web Push (notificações no navegador) =====
+pywebpush>=1.14.0
+
+# ===== External Services =====
+requests
+boto3
+httpx
+Pillow
+dnspython>=2.4.0  # Para validação de email MX (opcional)
+locust>=2.20.0
