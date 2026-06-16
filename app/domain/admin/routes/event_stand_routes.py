@@ -23,13 +23,16 @@ def create_event_stand(
     name: str = Form(...),
     description: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
+    image_url: Optional[str] = Form(None),
     db: Session = Depends(get_admin_db),
     user: User = Depends(require_admin_or_master),
 ):
     try:
-        image_url = None
+        resolved_image_url = None
         if image and image.filename:
-            image_url = upload_image_to_s3(image, folder="event_stands")
+            resolved_image_url = upload_image_to_s3(image, folder="event_stands")
+        elif image_url:
+            resolved_image_url = image_url
 
         return EventStandService.create_stand(
             db,
@@ -37,7 +40,7 @@ def create_event_stand(
                 "event_id": event_id,
                 "name": name.strip(),
                 "description": description.strip() if description else None,
-                "image_url": image_url,
+                "image_url": resolved_image_url,
             },
             user,
         )
@@ -100,6 +103,7 @@ def update_event_stand(
     name: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
+    image_url: Optional[str] = Form(None),
     remove_image: bool = Form(False),
     db: Session = Depends(get_admin_db),
     user: User = Depends(require_admin_or_master),
@@ -113,8 +117,10 @@ def update_event_stand(
             data["description"] = description.strip() if description.strip() else None
         if remove_image:
             data["image_url"] = None
-        if image and image.filename:
+        elif image and image.filename:
             data["image_url"] = upload_image_to_s3(image, folder="event_stands")
+        elif image_url is not None:
+            data["image_url"] = image_url
 
         return EventStandService.update_stand(db, stand_id, data, user)
     except ValueError as e:
