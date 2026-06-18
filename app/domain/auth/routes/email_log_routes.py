@@ -22,7 +22,7 @@ def get_email_logs(
     """Consulta logs de emails enviados (apenas para admins)"""
     
     # Verificar se é admin
-    if current_user.role not in ["admin_master", "subadmin"]:
+    if current_user.role not in ["admin_master", "admin"]:
         raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores podem acessar.")
     
     # Converter strings para enums se fornecidos
@@ -91,7 +91,7 @@ def get_email_proof(
     Retorna prova completa de envios para um email específico
     Útil para mostrar ao cliente que emails foram enviados
     """
-    if current_user.role not in ["admin_master", "subadmin"]:
+    if current_user.role not in ["admin_master", "admin"]:
         raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores podem acessar.")
     
     email_type_enum = None
@@ -133,7 +133,7 @@ def get_email_log_by_id(
     db: Session = Depends(get_db)
 ):
     """Retorna detalhes de um log específico"""
-    if current_user.role not in ["admin_master", "subadmin"]:
+    if current_user.role not in ["admin_master", "admin"]:
         raise HTTPException(status_code=403, detail="Acesso negado. Apenas administradores podem acessar.")
     
     log = EmailLogRepository.get_log_by_id(db, log_id)

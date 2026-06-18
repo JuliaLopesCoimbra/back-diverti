@@ -172,7 +172,7 @@ class NotificationService:
     
     @staticmethod
     def notify_post_approved(notification_db, auth_db, admin_db, news_id: int, approver_id: int):
-        """Notifica quando um post é aprovado (apenas para usuários comuns, não subadmin/colunista)"""
+        """Notifica quando um post é aprovado (apenas para usuários comuns, não admin/patrocinador)"""
         from app.domain.admin.models.news_model import NewsPost
         from app.domain.admin.models.event_model import Event
         
@@ -185,8 +185,8 @@ class NotificationService:
         if not author:
             return
         
-        # Não envia notificação para subadmin/colunista (eles recebem notify_post_approved_admin)
-        if author.role in ["subadmin", "colunista"]:
+        # Não envia notificação para admin/patrocinador (eles recebem notify_post_approved_admin)
+        if author.role in ["admin", "patrocinador"]:
             return
         
         approver = auth_db.query(User).filter(User.id == approver_id).first()
@@ -448,7 +448,7 @@ class NotificationService:
     
     @staticmethod
     def notify_post_approved_admin(notification_db, auth_db, admin_db, news_id: int, approver_id: int):
-        """Notifica subadmin/colunista quando seu post é aprovado (sempre envia, sem verificar preferências)"""
+        """Notifica admin/patrocinador quando seu post é aprovado (sempre envia, sem verificar preferências)"""
         from app.domain.admin.models.news_model import NewsPost
         from app.domain.admin.models.event_model import Event
         
@@ -461,8 +461,8 @@ class NotificationService:
         if not author:
             return
         
-        # Só notifica se o autor for subadmin ou colunista
-        if author.role not in ["subadmin", "colunista"]:
+        # Só notifica se o autor for admin ou patrocinador
+        if author.role not in ["admin", "patrocinador"]:
             return
         
         # Não notifica a si mesmo se o aprovador for o próprio autor
@@ -491,7 +491,7 @@ class NotificationService:
     
     @staticmethod
     def notify_post_rejected(notification_db, auth_db, admin_db, news_id: int, rejector_id: int):
-        """Notifica subadmin/colunista quando seu post é rejeitado (sempre envia, sem verificar preferências)"""
+        """Notifica admin/patrocinador quando seu post é rejeitado (sempre envia, sem verificar preferências)"""
         from app.domain.admin.models.news_model import NewsPost
         from app.domain.admin.models.event_model import Event
         
@@ -504,8 +504,8 @@ class NotificationService:
         if not author:
             return
         
-        # Só notifica se o autor for subadmin ou colunista
-        if author.role not in ["subadmin", "colunista"]:
+        # Só notifica se o autor for admin ou patrocinador
+        if author.role not in ["admin", "patrocinador"]:
             return
         
         # Não notifica a si mesmo se o rejeitador for o próprio autor
@@ -534,7 +534,7 @@ class NotificationService:
     
     @staticmethod
     def notify_post_deactivated(notification_db, auth_db, admin_db, news_id: int, deactivator_id: int):
-        """Notifica subadmin/colunista quando seu post é desativado (sempre envia, sem verificar preferências)"""
+        """Notifica admin/patrocinador quando seu post é desativado (sempre envia, sem verificar preferências)"""
         from app.domain.admin.models.news_model import NewsPost
         from app.domain.admin.models.event_model import Event
         
@@ -547,8 +547,8 @@ class NotificationService:
         if not author:
             return
         
-        # Só notifica se o autor for subadmin ou colunista
-        if author.role not in ["subadmin", "colunista"]:
+        # Só notifica se o autor for admin ou patrocinador
+        if author.role not in ["admin", "patrocinador"]:
             return
         
         # Não notifica a si mesmo se o desativador for o próprio autor

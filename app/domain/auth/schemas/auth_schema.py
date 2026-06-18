@@ -244,29 +244,15 @@ class ResendAdminInviteRequest(BaseModel):
     def validate_email(cls, v: str) -> str:
         return validate_email_tld(v)
 
-class InviteSubadminRequest(BaseModel):
+class InvitePatrocinadorRequest(BaseModel):
     name: str
     email: EmailStr
-    
-    @field_validator('name')
-    @classmethod
-    def validate_name(cls, v: str) -> str:
-        return validate_full_name(v)
-    
-    @field_validator('email')
-    @classmethod
-    def validate_email(cls, v: str) -> str:
-        return validate_email_tld(v)
 
-class InviteColunistaRequest(BaseModel):
-    name: str
-    email: EmailStr
-    
     @field_validator('name')
     @classmethod
     def validate_name(cls, v: str) -> str:
         return validate_full_name(v)
-    
+
     @field_validator('email')
     @classmethod
     def validate_email(cls, v: str) -> str:

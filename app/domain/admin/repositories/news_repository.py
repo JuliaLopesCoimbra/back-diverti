@@ -226,7 +226,7 @@ class NewsRepository:
 
     @staticmethod
     def list_rejected_by_rejector(db, rejector_id: int, event_id: int = None, limit: int = 10, offset: int = 0):
-        """Lista posts rejeitados por um admin/subadmin específico, opcionalmente filtrado por evento"""
+        """Lista posts rejeitados por um admin/admin_master específico, opcionalmente filtrado por evento"""
         query = (
             db.query(NewsPost)
             .options(joinedload(NewsPost.images))

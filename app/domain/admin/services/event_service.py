@@ -8,8 +8,8 @@ class EventService:
 
     @staticmethod
     def create_event(db, data, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem criar eventos")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem criar eventos")
 
         # Adiciona created_by_id ao data
         data["created_by_id"] = user.id
@@ -37,8 +37,8 @@ class EventService:
 
     @staticmethod
     def update_event(db, event_id: int, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem editar eventos")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem editar eventos")
 
         # force_db=True para garantir objeto SQLAlchemy
         event = EventRepository.get_by_id(db, event_id, force_db=True)
@@ -90,8 +90,8 @@ class EventService:
     def delete_event(db, event_id: int, user):
         from datetime import datetime
         
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem deletar eventos")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem deletar eventos")
 
         # force_db=True para garantir objeto SQLAlchemy
         event = EventRepository.get_by_id(db, event_id, force_db=True)
@@ -132,8 +132,8 @@ class EventService:
     @staticmethod
     def update_post_approval_requirement(db, event_id: int, requires_approval: bool, user):
         """Atualiza se o evento requer aprovação de posts"""
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem alterar essa configuração")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem alterar essa configuração")
         
         # force_db=True para garantir objeto SQLAlchemy
         event = EventRepository.get_by_id(db, event_id, force_db=True)

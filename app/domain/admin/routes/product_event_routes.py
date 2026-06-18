@@ -8,7 +8,7 @@ from decimal import Decimal
 from app.config.admin_db import get_admin_db
 from app.domain.admin.controllers.product_event_controller import ProductEventController
 from app.core.security.auth_dependency import get_current_user
-from app.core.security.permissions import require_subadmin_or_master
+from app.core.security.permissions import require_admin_or_master
 from app.domain.auth.models.user_model import User
 from app.domain.admin.schemas.product_event_schema import (
     ProductEventResponseSchema,
@@ -35,7 +35,7 @@ def create_product_event(
     event_id: int = Form(...),
     images: Optional[List[UploadFile]] = File(None),
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Cria um novo produto de evento"""
     try:
@@ -174,7 +174,7 @@ def update_product_event(
     replace_images: bool = Form(False),
     removed_image_ids: Optional[str] = Form(None),  # Lista de IDs separados por vírgula
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Atualiza um produto de evento"""
     data = {}
@@ -254,7 +254,7 @@ def update_product_event(
 def delete_product_event(
     product_id: int,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Deleta um produto de evento (soft delete)"""
     try:

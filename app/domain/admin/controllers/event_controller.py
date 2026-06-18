@@ -26,8 +26,8 @@ class EventController:
 
     @staticmethod
     def change_status(db, event_id: int, is_active: bool, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem alterar status")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem alterar status")
 
         # force_db=True para garantir objeto SQLAlchemy
         event = EventRepository.get_by_id(db, event_id, force_db=True)

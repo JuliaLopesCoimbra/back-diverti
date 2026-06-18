@@ -5,7 +5,7 @@ from app.config.admin_db import get_admin_db
 from app.config.auth_db import get_db
 from app.config.interaction_db import get_interaction_db
 from app.core.security.auth_dependency import get_current_user, get_current_user_optional
-from app.core.security.permissions import require_colunista_or_above, require_subadmin_or_master
+from app.core.security.permissions import require_patrocinador_or_above, require_admin_or_master
 from app.domain.admin.controllers.news_controller import NewsController
 from app.domain.auth.controllers.auth_controller import AuthController
 from app.infra.s3_upload import upload_image_to_s3
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/admin/events", tags=["Admin News"])
 @router.get("/my-posts")
 def list_my_posts(
     db = Depends(get_admin_db),
-    user = Depends(require_colunista_or_above),
+    user = Depends(require_patrocinador_or_above),
     event_id: Optional[int] = Query(None, description="Filtrar por evento"),
     limit: int = Query(10, ge=1, le=100, description="Número máximo de posts (1-100)"),
     offset: int = Query(0, ge=0, description="Número de posts para pular")
@@ -28,18 +28,18 @@ def list_my_posts(
 @router.get("/my-posts/pending")
 def list_my_pending_posts(
     db = Depends(get_admin_db),
-    user = Depends(require_colunista_or_above),
+    user = Depends(require_patrocinador_or_above),
     event_id: Optional[int] = Query(None, description="Filtrar por evento"),
     limit: int = Query(10, ge=1, le=100, description="Número máximo de posts (1-100)"),
     offset: int = Query(0, ge=0, description="Número de posts para pular")
 ):
     return NewsController.list_pending_by_author(db, user.id, event_id, limit, offset)
 
-# Endpoint para listar posts rejeitados pelo admin/subadmin autenticado
+# Endpoint para listar posts rejeitados pelo admin/admin_master autenticado
 @router.get("/my-rejected-posts")
 def list_my_rejected_posts(
     db = Depends(get_admin_db),
-    rejector = Depends(require_subadmin_or_master),
+    rejector = Depends(require_admin_or_master),
     event_id: Optional[int] = Query(None, description="Filtrar por evento"),
     limit: int = Query(10, ge=1, le=100, description="Número máximo de posts (1-100)"),
     offset: int = Query(0, ge=0, description="Número de posts para pular")
@@ -50,7 +50,7 @@ def list_my_rejected_posts(
 @router.get("/news/pending")
 def list_pending_posts(
     db = Depends(get_admin_db),
-    approver = Depends(require_subadmin_or_master),
+    approver = Depends(require_admin_or_master),
     event_id: Optional[int] = Query(None, description="Filtrar por evento"),
     limit: int = Query(10, ge=1, le=100, description="Número máximo de posts (1-100)"),
     offset: int = Query(0, ge=0, description="Número de posts para pular")
@@ -62,7 +62,7 @@ def list_pending_posts(
 def approve_post(
     post_id: int,
     db = Depends(get_admin_db),
-    approver = Depends(require_subadmin_or_master)
+    approver = Depends(require_admin_or_master)
 ):
     return NewsController.approve(db, post_id, approver)
 
@@ -71,7 +71,7 @@ def approve_post(
 def reject_post(
     post_id: int,
     db = Depends(get_admin_db),
-    rejector = Depends(require_subadmin_or_master)
+    rejector = Depends(require_admin_or_master)
 ):
     return NewsController.reject(db, post_id, rejector)
 
@@ -80,7 +80,7 @@ def reject_post(
 def deactivate_post(
     post_id: int,
     db = Depends(get_admin_db),
-    deactivator = Depends(require_subadmin_or_master)
+    deactivator = Depends(require_admin_or_master)
 ):
     return NewsController.deactivate(db, post_id, deactivator)
 
@@ -102,7 +102,7 @@ def create_news(
     content: str = Form(...),
     images: list[UploadFile] = File(...),
     db = Depends(get_admin_db),
-    user = Depends(require_colunista_or_above)
+    user = Depends(require_patrocinador_or_above)
 ):
     # Validação: máximo de 5 imagens
     if len(images) > 5:
@@ -146,7 +146,7 @@ def update_news(
     images: list[UploadFile] = File(None),
     replace_all: bool = Form(False),
     db = Depends(get_admin_db),
-    user = Depends(require_colunista_or_above)
+    user = Depends(require_patrocinador_or_above)
 ):
 
     news = NewsController.get(db, news_id)
@@ -174,7 +174,7 @@ def delete_news(
     event_id: int,
     news_id: int,
     db = Depends(get_admin_db),
-    user = Depends(require_colunista_or_above)
+    user = Depends(require_patrocinador_or_above)
 ):
 
     # Verifica se a news existe e pertence ao evento

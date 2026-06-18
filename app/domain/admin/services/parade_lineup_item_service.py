@@ -9,8 +9,8 @@ class ParadeLineupItemService:
 
     @staticmethod
     def create_parade_lineup_item(db, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem criar itens do lineup de desfile")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem criar itens do lineup de desfile")
 
         # Verifica se o evento existe
         event = EventRepository.get_by_id(db, data['event_id'], force_db=True)
@@ -97,8 +97,8 @@ class ParadeLineupItemService:
 
     @staticmethod
     def update_parade_lineup_item(db, parade_lineup_item_id: int, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem editar itens do lineup de desfile")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem editar itens do lineup de desfile")
 
         parade_lineup_item = ParadeLineupItemRepository.get_by_id(db, parade_lineup_item_id)
         if not parade_lineup_item:
@@ -127,8 +127,8 @@ class ParadeLineupItemService:
 
     @staticmethod
     def delete_parade_lineup_item(db, parade_lineup_item_id: int, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem deletar itens do lineup de desfile")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem deletar itens do lineup de desfile")
 
         parade_lineup_item = ParadeLineupItemRepository.get_by_id(db, parade_lineup_item_id)
         if not parade_lineup_item:

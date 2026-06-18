@@ -103,8 +103,8 @@ def get_current_user_optional(
     return user
 
 def require_admin(user: User = Depends(get_current_user)):
-    """Mantido para compatibilidade - aceita admin_master ou subadmin"""
-    if user.role not in ["admin", "admin_master", "subadmin"]:
+    """Aceita admin_master ou admin"""
+    if user.role not in ["admin", "admin_master"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Apenas administradores podem acessar este recurso."

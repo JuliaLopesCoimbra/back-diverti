@@ -11,7 +11,7 @@ class User(Base):
     email = Column(String(180), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=True)
     profile_photo = Column(String(500), nullable=True)
-    role = Column(String(20), default="user")  # Valores: "admin_master", "subadmin", "colunista", "user"
+    role = Column(String(20), default="user")  # Valores: "admin_master", "admin", "patrocinador", "user"
     is_email_verified = Column(Boolean, default=False)
     status = Column(String(20), default="active")
     

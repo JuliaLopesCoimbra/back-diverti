@@ -7,8 +7,8 @@ class LineupItemService:
 
     @staticmethod
     def create_lineup_item(db, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem criar itens do lineup")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem criar itens do lineup")
 
         # Verifica se o evento existe
         event = EventRepository.get_by_id(db, data['event_id'], force_db=True)
@@ -48,8 +48,8 @@ class LineupItemService:
 
     @staticmethod
     def update_lineup_item(db, lineup_item_id: int, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem editar itens do lineup")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem editar itens do lineup")
 
         lineup_item = LineupItemRepository.get_by_id(db, lineup_item_id)
         if not lineup_item:
@@ -73,8 +73,8 @@ class LineupItemService:
 
     @staticmethod
     def reorder_lineup_items(db, event_id: int, event_date, item_ids: list[int], user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem reordenar itens do lineup")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem reordenar itens do lineup")
 
         event = EventRepository.get_by_id(db, event_id, force_db=True)
         if not event:
@@ -97,8 +97,8 @@ class LineupItemService:
 
     @staticmethod
     def delete_lineup_item(db, lineup_item_id: int, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem deletar itens do lineup")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem deletar itens do lineup")
 
         lineup_item = LineupItemRepository.get_by_id(db, lineup_item_id)
         if not lineup_item:

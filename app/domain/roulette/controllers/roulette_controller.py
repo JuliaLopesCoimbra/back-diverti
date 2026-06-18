@@ -5,8 +5,8 @@ class RouletteController:
 
     @staticmethod
     def create(db, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise HTTPException(403, "Apenas admin master ou subadmin podem criar roleta")
+        if user.role not in ["admin_master", "admin"]:
+            raise HTTPException(403, "Apenas admin master ou admin podem criar roleta")
 
         return RouletteService.create_roulette(db, data)
 

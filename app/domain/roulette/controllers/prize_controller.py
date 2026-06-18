@@ -5,10 +5,10 @@ class PrizeController:
 
     @staticmethod
     def create(db, admin_db, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
+        if user.role not in ["admin_master", "admin"]:
             raise HTTPException(
                 status_code=403,
-                detail="Apenas admin master ou subadmin podem criar prêmios"
+                detail="Apenas admin master ou admin podem criar prêmios"
             )
 
         return PrizeService.create_prize(db, admin_db, data)

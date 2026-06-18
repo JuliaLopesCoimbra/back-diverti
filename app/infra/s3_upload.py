@@ -2,6 +2,8 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from app.config.settings import settings
 import uuid
+import re
+import unicodedata
 from typing import List
 from fastapi import HTTPException
 
@@ -32,6 +34,16 @@ def _get_file_size(file_obj) -> int:
     
     return file_size
 
+def _sanitize_filename(filename: str) -> str:
+    """Remove acentos, espaços e chars especiais do nome do arquivo para gerar S3 key segura."""
+    # Normaliza acentos → ASCII equivalente
+    normalized = unicodedata.normalize("NFKD", filename)
+    ascii_name = normalized.encode("ascii", "ignore").decode("ascii")
+    # Substitui qualquer char que não seja letra, dígito, ponto ou hífen por _
+    safe = re.sub(r"[^\w.\-]", "_", ascii_name)
+    return safe or "file"
+
+
 def _validate_file_size(file_obj, filename: str) -> None:
     """
     Valida o tamanho do arquivo antes do upload.
@@ -56,8 +68,9 @@ def upload_image_to_s3(image_file, folder: str):
     """
     # Validar tamanho do arquivo antes do upload
     _validate_file_size(image_file.file, image_file.filename)
-    
-    file_name = f"{folder}/{uuid.uuid4()}_{image_file.filename}"
+
+    safe_name = _sanitize_filename(image_file.filename)
+    file_name = f"{folder}/{uuid.uuid4()}_{safe_name}"
 
     try:
         s3_client.upload_fileobj(

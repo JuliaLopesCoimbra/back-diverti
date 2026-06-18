@@ -16,9 +16,9 @@ class NewsPost(AdminBase):
     
     # Sistema de aprovação
     status = Column(String(20), default="pending", index=True)  # "pending", "approved", "rejected", "deleted"
-    approved_by_id = Column(Integer, nullable=True)  # ID do subadmin/admin_master que aprovou
+    approved_by_id = Column(Integer, nullable=True)  # ID do admin/admin_master que aprovou
     approved_at = Column(DateTime(timezone=True), nullable=True)
-    rejected_by_id = Column(Integer, nullable=True)  # ID do subadmin/admin_master que rejeitou
+    rejected_by_id = Column(Integer, nullable=True)  # ID do admin/admin_master que rejeitou
     rejected_at = Column(DateTime(timezone=True), nullable=True)
     
     # Sistema de soft delete

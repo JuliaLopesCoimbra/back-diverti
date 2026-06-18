@@ -308,7 +308,7 @@ def broadcast_notification_task(self, title: str, message: str, sender_id: int):
     Args:
         title: Título da notificação
         message: Mensagem da notificação
-        sender_id: ID do admin/subadmin que está enviando a notificação
+        sender_id: ID do admin/admin_master que está enviando a notificação
     """
     try:
         notification_db = next(get_notification_db())

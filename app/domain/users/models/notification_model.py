@@ -16,7 +16,7 @@ class Notification(NotificationBase):
     related_news_id = Column(Integer, nullable=True)  # Post relacionado
     related_comment_id = Column(Integer, nullable=True)  # Comentário relacionado
     related_event_id = Column(Integer, nullable=True)  # Evento relacionado
-    broadcast_sender_id = Column(Integer, nullable=True)  # Quem enviou a notificação de broadcast (admin/subadmin)
+    broadcast_sender_id = Column(Integer, nullable=True)  # Quem enviou a notificação de broadcast (admin/admin_master)
     
     # Campos para agrupamento de notificações
     count = Column(Integer, default=1, nullable=False)  # Quantidade de pessoas que fizeram a ação (para agrupamento)

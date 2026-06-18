@@ -105,24 +105,24 @@ class AuthRepository:
         return len(tokens)  # Retorna quantidade de tokens revogados
 
     @staticmethod
-    def list_subadmins(db: Session, limit: int = 50, offset: int = 0):
-        """Lista subadmins com paginação obrigatória"""
+    def list_admins(db: Session, limit: int = 50, offset: int = 0):
+        """Lista admins com paginação obrigatória"""
         limit = min(limit, 100)  # Máximo de 100 por requisição
         return db.query(User).options(
             joinedload(User.invited_by),
             joinedload(User.deactivated_by),
             joinedload(User.reactivated_by)
-        ).filter(User.role == "subadmin").order_by(User.created_at.desc()).limit(limit).offset(offset).all()
+        ).filter(User.role == "admin").order_by(User.created_at.desc()).limit(limit).offset(offset).all()
 
     @staticmethod
-    def list_colunistas(db: Session, invited_by_id: int = None, limit: int = 50, offset: int = 0):
-        """Lista colunistas com paginação obrigatória. Se invited_by_id fornecido, filtra apenas os convidados por esse usuário"""
+    def list_patrocinadores(db: Session, invited_by_id: int = None, limit: int = 50, offset: int = 0):
+        """Lista patrocinadores com paginação obrigatória. Se invited_by_id fornecido, filtra apenas os convidados por esse usuário"""
         limit = min(limit, 100)  # Máximo de 100 por requisição
         query = db.query(User).options(
             joinedload(User.invited_by),
             joinedload(User.deactivated_by),
             joinedload(User.reactivated_by)
-        ).filter(User.role == "colunista")
+        ).filter(User.role == "patrocinador")
         if invited_by_id:
             query = query.filter(User.invited_by_id == invited_by_id)
         return query.order_by(User.created_at.desc()).limit(limit).offset(offset).all()

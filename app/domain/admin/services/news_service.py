@@ -17,8 +17,8 @@ class NewsService:
 
     @staticmethod
     def create_post(db, title, content, image_url, user):
-        if user.role not in ["admin_master", "subadmin", "colunista"]:
-            raise HTTPException(403, "Apenas colunistas, subadmins ou admin master podem postar notícias.")
+        if user.role not in ["admin_master", "admin", "patrocinador"]:
+            raise HTTPException(403, "Apenas patrocinadores, admins ou admin master podem postar notícias.")
 
         # Criando a notícia no banco de dados com todos os parâmetros
         # Nota: Este método parece ser legado, use create_news que tem suporte completo
@@ -28,7 +28,7 @@ class NewsService:
             content=content,
             image_url=image_url,
             author_id=user.id,
-            status="approved" if user.role in ["admin_master", "subadmin"] else "pending"
+            status="approved" if user.role in ["admin_master", "admin"] else "pending"
         )
 
     @staticmethod
@@ -37,8 +37,8 @@ class NewsService:
 
     @staticmethod
     def update_post(db, news_id, title, content, image_files, user, replace_all=False):
-        if user.role not in ["admin_master", "subadmin", "colunista"]:
-            raise HTTPException(status_code=403, detail="Apenas colunistas, subadmins ou admin master podem editar notícias.")
+        if user.role not in ["admin_master", "admin", "patrocinador"]:
+            raise HTTPException(status_code=403, detail="Apenas patrocinadores, admins ou admin master podem editar notícias.")
 
         news = NewsRepository.get(db, news_id)
         if not news:
@@ -51,8 +51,8 @@ class NewsService:
                 detail="Você só pode editar notícias que você criou."
             )
 
-        # Se o post já está aprovado e o usuário é colunista, volta para pending
-        if news.status == "approved" and user.role == "colunista":
+        # Se o post já está aprovado e o usuário é patrocinador, volta para pending
+        if news.status == "approved" and user.role == "patrocinador":
             news.status = "pending"
             news.approved_by_id = None
             news.approved_at = None
@@ -117,8 +117,8 @@ class NewsService:
     # Adicionando o método de deletação (soft delete)
     @staticmethod
     def delete_post(db, news_id, user):
-        if user.role not in ["admin_master", "subadmin", "colunista"]:
-            raise HTTPException(status_code=403, detail="Apenas colunistas, subadmins ou admin master podem deletar notícias.")
+        if user.role not in ["admin_master", "admin", "patrocinador"]:
+            raise HTTPException(status_code=403, detail="Apenas patrocinadores, admins ou admin master podem deletar notícias.")
 
         news = NewsRepository.get(db, news_id)
         if not news:
@@ -171,9 +171,9 @@ class NewsService:
 
     @staticmethod
     def create_news(db, data, user, image_files=None):
-        """Colunistas, subadmins e admin_master podem criar posts"""
-        if user.role not in ["admin_master", "subadmin", "colunista"]:
-            raise HTTPException(403, "Apenas colunistas, subadmins ou admin master podem criar posts.")
+        """Patrocinadores, admins e admin_master podem criar posts"""
+        if user.role not in ["admin_master", "admin", "patrocinador"]:
+            raise HTTPException(403, "Apenas patrocinadores, admins ou admin master podem criar posts.")
 
         event = EventRepository.get_by_id(db, data["event_id"])
         if not event:
@@ -181,9 +181,9 @@ class NewsService:
 
         # Verificar se o evento requer aprovação
         requires_approval = getattr(event, 'requires_post_approval', True)
-        
-        # Se for admin_master ou subadmin, não precisa aprovação
-        if user.role in ["admin_master", "subadmin"]:
+
+        # Se for admin_master ou admin, não precisa aprovação
+        if user.role in ["admin_master", "admin"]:
             status = "approved"
             approved_by_id = user.id
         elif requires_approval:
@@ -247,9 +247,9 @@ class NewsService:
 
     @staticmethod
     def approve_post(db, post_id, approver):
-        """Apenas admin_master e subadmin podem aprovar posts"""
-        if approver.role not in ["admin_master", "subadmin"]:
-            raise HTTPException(403, "Apenas subadmins ou admin master podem aprovar posts.")
+        """Apenas admin_master e admin podem aprovar posts"""
+        if approver.role not in ["admin_master", "admin"]:
+            raise HTTPException(403, "Apenas admins ou admin master podem aprovar posts.")
         
         post = NewsRepository.get(db, post_id)
         if not post:
@@ -283,7 +283,7 @@ class NewsService:
                 NotificationService.notify_post_approved(
                     notification_db, auth_db, db, post.id, approver.id
                 )
-                # Notificar subadmin/colunista que o post foi aprovado (sempre envia)
+                # Notificar admin/patrocinador que o post foi aprovado (sempre envia)
                 NotificationService.notify_post_approved_admin(
                     notification_db, auth_db, db, post.id, approver.id
                 )
@@ -301,9 +301,9 @@ class NewsService:
 
     @staticmethod
     def reject_post(db, post_id, rejector):
-        """Apenas admin_master e subadmin podem rejeitar posts"""
-        if rejector.role not in ["admin_master", "subadmin"]:
-            raise HTTPException(403, "Apenas subadmins ou admin master podem rejeitar posts.")
+        """Apenas admin_master e admin podem rejeitar posts"""
+        if rejector.role not in ["admin_master", "admin"]:
+            raise HTTPException(403, "Apenas admins ou admin master podem rejeitar posts.")
         
         post = NewsRepository.get(db, post_id)
         if not post:
@@ -328,7 +328,7 @@ class NewsService:
             notification_db = next(get_notification_db())
             auth_db = next(get_auth_db())
             try:
-                # Notificar subadmin/colunista que o post foi rejeitado (sempre envia)
+                # Notificar admin/patrocinador que o post foi rejeitado (sempre envia)
                 NotificationService.notify_post_rejected(
                     notification_db, auth_db, db, post.id, rejector.id
                 )
@@ -343,9 +343,9 @@ class NewsService:
 
     @staticmethod
     def deactivate_post(db, post_id, deactivator):
-        """Apenas admin_master e subadmin podem desativar posts"""
-        if deactivator.role not in ["admin_master", "subadmin"]:
-            raise HTTPException(403, "Apenas subadmins ou admin master podem desativar posts.")
+        """Apenas admin_master e admin podem desativar posts"""
+        if deactivator.role not in ["admin_master", "admin"]:
+            raise HTTPException(403, "Apenas admins ou admin master podem desativar posts.")
         
         post = NewsRepository.get(db, post_id)
         if not post:
@@ -370,7 +370,7 @@ class NewsService:
             notification_db = next(get_notification_db())
             auth_db = next(get_auth_db())
             try:
-                # Notificar subadmin/colunista que o post foi desativado (sempre envia)
+                # Notificar admin/patrocinador que o post foi desativado (sempre envia)
                 NotificationService.notify_post_deactivated(
                     notification_db, auth_db, db, post.id, deactivator.id
                 )
@@ -386,16 +386,16 @@ class NewsService:
     @staticmethod
     def list_posts_for_approval(db, approver, event_id: int = None, limit: int = 10, offset: int = 0):
         """Lista posts pendentes de aprovação, opcionalmente filtrados por evento"""
-        if approver.role not in ["admin_master", "subadmin"]:
-            raise HTTPException(403, "Apenas subadmins ou admin master podem ver posts pendentes.")
-        
+        if approver.role not in ["admin_master", "admin"]:
+            raise HTTPException(403, "Apenas admins ou admin master podem ver posts pendentes.")
+
         return NewsRepository.list_pending(db, limit=limit, offset=offset, event_id=event_id)
 
     @staticmethod
     def list_rejected_by_rejector(db, rejector, event_id: int = None, limit: int = 10, offset: int = 0):
-        """Lista posts rejeitados por um admin/subadmin específico"""
-        if rejector.role not in ["admin_master", "subadmin"]:
-            raise HTTPException(403, "Apenas subadmins ou admin master podem ver posts rejeitados por eles.")
+        """Lista posts rejeitados por um admin/admin_master específico"""
+        if rejector.role not in ["admin_master", "admin"]:
+            raise HTTPException(403, "Apenas admins ou admin master podem ver posts rejeitados por eles.")
         
         return NewsRepository.list_rejected_by_rejector(db, rejector.id, event_id, limit, offset)
 

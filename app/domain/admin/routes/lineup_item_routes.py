@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.config.admin_db import get_admin_db
 from app.domain.admin.services.lineup_item_service import LineupItemService
-from app.core.security.permissions import require_subadmin_or_master
+from app.core.security.permissions import require_admin_or_master
 from app.domain.auth.models.user_model import User
 from app.domain.admin.schemas.lineup_item_schema import (
     LineupItemCreateSchema,
@@ -67,7 +67,7 @@ def create_lineup_item(
     display_order: Optional[int] = Form(None),
     description: str = Form(None),
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Cria um novo item do lineup"""
     try:
@@ -197,7 +197,7 @@ def update_lineup_item(
     description: str = Form(None),
     remove_image: bool = Form(False),  # Se True, remove a imagem existente
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Atualiza um item do lineup"""
     try:
@@ -280,7 +280,7 @@ def reorder_lineup_items(
     event_id: int,
     payload: LineupItemReorderSchema,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Reordena os artistas do lineup de um dia especifico"""
     try:
@@ -322,7 +322,7 @@ def reorder_lineup_items(
 def delete_lineup_item(
     lineup_item_id: int,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Deleta um item do lineup"""
     try:
@@ -352,7 +352,7 @@ def delete_lineup_item(
 def notify_lineup_updated(
     event_id: int,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Notifica todos os usuários sobre atualização do lineup"""
     try:

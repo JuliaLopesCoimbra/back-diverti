@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Request, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.config.auth_db import get_db
 from app.core.security.auth_dependency import get_current_user_optional, require_admin
-from app.core.security.permissions import require_admin_master, require_subadmin_or_master
+from app.core.security.permissions import require_admin_master, require_admin_or_master
 from app.domain.auth.schemas.auth_schema import RegisterRequest, LoginRequest, TokenResponse, AdminCreateAdminRequest, \
-    InviteAdminRequest, FirstAccessRequest, ResendAdminInviteRequest, InviteSubadminRequest, InviteColunistaRequest, UserResponse, AgeVerificationRequest, CompleteProfileRequest, CompleteEmailRequest, CompleteEmailResponse, UpdateEmailByCpfRequest, UpdateEmailByCpfResponse
+    InviteAdminRequest, FirstAccessRequest, ResendAdminInviteRequest, InvitePatrocinadorRequest, UserResponse, AgeVerificationRequest, CompleteProfileRequest, CompleteEmailRequest, CompleteEmailResponse, UpdateEmailByCpfRequest, UpdateEmailByCpfResponse
 from app.domain.auth.controllers.auth_controller import AuthController
 from app.domain.auth.schemas.auth_schema import RefreshRequest
 from app.domain.auth.services.auth_service import AuthService
@@ -21,14 +21,14 @@ def register(
     # Rate limiting: 5 registros por hora por IP (CRÍTICO - retorna 503 se Redis cair)
     ip = request.client.host
     allowed, remaining = check_rate_limit(f"register:ip:{ip}", max_requests=5, window_seconds=3600, critical=True)
-    
+
     if not allowed:
         raise HTTPException(
             status_code=429,
             detail="Muitas tentativas de registro. Tente novamente em 1 hora.",
             headers={"Retry-After": "3600"}
         )
-    
+
     agent = request.headers.get("user-agent")
     return AuthController.register(db, body, agent, ip)
 
@@ -57,14 +57,14 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
     # Rate limiting: 5 tentativas de login por minuto por IP (CRÍTICO - retorna 503 se Redis cair)
     ip = request.client.host
     allowed, remaining = check_rate_limit(f"login:ip:{ip}", max_requests=5, window_seconds=60, critical=True)
-    
+
     if not allowed:
         raise HTTPException(
             status_code=429,
             detail="Muitas tentativas de login. Tente novamente em 1 minuto.",
             headers={"Retry-After": "60", "X-RateLimit-Remaining": str(remaining)}
         )
-    
+
     agent = request.headers.get("user-agent")
     access, refresh = AuthController.login(db, body, agent, ip)
 
@@ -76,14 +76,14 @@ def refresh(body: RefreshRequest, request: Request, db: Session = Depends(get_db
     # Rate limiting: 20 refresh tokens por minuto por IP
     ip = request.client.host
     allowed, remaining = check_rate_limit(f"refresh:ip:{ip}", max_requests=20, window_seconds=60)
-    
+
     if not allowed:
         raise HTTPException(
             status_code=429,
             detail="Muitas tentativas de refresh. Tente novamente em 1 minuto.",
             headers={"Retry-After": "60"}
         )
-    
+
     agent = request.headers.get("user-agent")
     access, refresh = AuthController.refresh(db, body.refresh_token, agent, ip)
 
@@ -102,10 +102,10 @@ def verify_age(
 ):
     if not current_user:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado.")
-    
+
     agent = request.headers.get("user-agent")
     ip = request.client.host
-    
+
     return AuthController.verify_age(db, current_user.id, body, agent, ip)
 
 @router.post("/complete-profile", response_model=TokenResponse)
@@ -117,12 +117,12 @@ def complete_profile(
 ):
     if not current_user:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado.")
-    
+
     agent = request.headers.get("user-agent")
     ip = request.client.host
-    
+
     result = AuthController.complete_profile(db, current_user.id, body, agent, ip)
-    
+
     return TokenResponse(
         access_token=result["access_token"],
         refresh_token=result["refresh_token"]
@@ -137,12 +137,12 @@ def complete_email(
 ):
     if not current_user:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado.")
-    
+
     agent = request.headers.get("user-agent")
     ip = request.client.host
-    
+
     result = AuthController.complete_email(db, current_user.id, body, agent, ip)
-    
+
     return CompleteEmailResponse(**result)
 
 @router.post("/update-email-by-cpf", response_model=UpdateEmailByCpfResponse)
@@ -158,14 +158,14 @@ def update_email_by_cpf(
     # Rate limiting: 5 tentativas por hora por IP (CRÍTICO - retorna 503 se Redis cair)
     ip = request.client.host
     allowed, remaining = check_rate_limit(f"update_email_cpf:ip:{ip}", max_requests=5, window_seconds=3600, critical=True)
-    
+
     if not allowed:
         raise HTTPException(
             status_code=429,
             detail="Muitas tentativas. Tente novamente em 1 hora.",
             headers={"Retry-After": "3600"}
         )
-    
+
     agent = request.headers.get("user-agent")
     return AuthController.update_email_by_cpf(db, body, agent, ip)
 
@@ -176,7 +176,7 @@ def me(user = Depends(AuthController.require_user)):
     cached = redis_client.get(cache_key)
     if cached is not None:
         return cached
-    
+
     result = {
         "id": user.id,
         "name": user.name,
@@ -189,94 +189,94 @@ def me(user = Depends(AuthController.require_user)):
     redis_client.set(cache_key, result, ttl=300)
     return result
 
-@router.post("/invite-subadmin")
-def invite_subadmin(
-    body: InviteSubadminRequest,
+@router.post("/invite-admin-user")
+def invite_admin_user(
+    body: InviteAdminRequest,
     db: Session = Depends(get_db),
     admin_master = Depends(require_admin_master)
 ):
-    return AuthController.invite_subadmin(db, body, admin_master)
+    return AuthController.invite_admin_user(db, body, admin_master)
 
-@router.post("/invite-colunista")
-def invite_colunista(
-    body: InviteColunistaRequest,
+@router.post("/invite-patrocinador")
+def invite_patrocinador(
+    body: InvitePatrocinadorRequest,
     db: Session = Depends(get_db),
-    inviter = Depends(require_subadmin_or_master)
+    inviter = Depends(require_admin_or_master)
 ):
-    return AuthController.invite_colunista(db, body, inviter)
+    return AuthController.invite_patrocinador(db, body, inviter)
 
-@router.post("/revoke-colunista/{colunista_id}")
-def revoke_colunista(
-    colunista_id: int,
+@router.post("/revoke-patrocinador/{patrocinador_id}")
+def revoke_patrocinador(
+    patrocinador_id: int,
     db: Session = Depends(get_db),
-    revoker = Depends(require_subadmin_or_master)
+    revoker = Depends(require_admin_or_master)
 ):
-    return AuthController.revoke_colunista_access(db, colunista_id, revoker)
+    return AuthController.revoke_patrocinador_access(db, patrocinador_id, revoker)
 
-@router.post("/revoke-subadmin/{subadmin_id}")
-def revoke_subadmin(
-    subadmin_id: int,
+@router.post("/revoke-admin/{admin_id}")
+def revoke_admin(
+    admin_id: int,
     db: Session = Depends(get_db),
     admin_master = Depends(require_admin_master)
 ):
-    return AuthController.revoke_subadmin_access(db, subadmin_id, admin_master)
+    return AuthController.revoke_admin_access(db, admin_id, admin_master)
 
 @router.post("/revoke-user/{user_id}")
 def revoke_user(
     user_id: int,
     db: Session = Depends(get_db),
-    revoker = Depends(require_subadmin_or_master)
+    revoker = Depends(require_admin_or_master)
 ):
     return AuthController.revoke_user_access(db, user_id, revoker)
 
-@router.post("/reactivate-colunista/{colunista_id}")
-def reactivate_colunista(
-    colunista_id: int,
+@router.post("/reactivate-patrocinador/{patrocinador_id}")
+def reactivate_patrocinador(
+    patrocinador_id: int,
     db: Session = Depends(get_db),
-    reactivator = Depends(require_subadmin_or_master)
+    reactivator = Depends(require_admin_or_master)
 ):
-    return AuthController.reactivate_colunista_access(db, colunista_id, reactivator)
+    return AuthController.reactivate_patrocinador_access(db, patrocinador_id, reactivator)
 
-@router.post("/reactivate-subadmin/{subadmin_id}")
-def reactivate_subadmin(
-    subadmin_id: int,
+@router.post("/reactivate-admin/{admin_id}")
+def reactivate_admin(
+    admin_id: int,
     db: Session = Depends(get_db),
     admin_master = Depends(require_admin_master)
 ):
-    return AuthController.reactivate_subadmin_access(db, subadmin_id, admin_master)
+    return AuthController.reactivate_admin_access(db, admin_id, admin_master)
 
 @router.post("/reactivate-user/{user_id}")
 def reactivate_user(
     user_id: int,
     db: Session = Depends(get_db),
-    reactivator = Depends(require_subadmin_or_master)
+    reactivator = Depends(require_admin_or_master)
 ):
     return AuthController.reactivate_user_access(db, user_id, reactivator)
 
-@router.get("/subadmins", response_model=list[UserResponse])
-def list_subadmins(
-    limit: int = Query(50, ge=1, le=100, description="Número máximo de subadmins (1-100)"),
-    offset: int = Query(0, ge=0, description="Número de subadmins para pular"),
+@router.get("/admins", response_model=list[UserResponse])
+def list_admins(
+    limit: int = Query(50, ge=1, le=100, description="Número máximo de admins (1-100)"),
+    offset: int = Query(0, ge=0, description="Número de admins para pular"),
     db: Session = Depends(get_db),
     requester = Depends(require_admin_master)
 ):
-    return AuthController.list_subadmins(db, requester, limit, offset)
+    return AuthController.list_admins(db, requester, limit, offset)
 
-@router.get("/colunistas", response_model=list[UserResponse])
-def list_colunistas(
-    limit: int = Query(50, ge=1, le=100, description="Número máximo de colunistas (1-100)"),
-    offset: int = Query(0, ge=0, description="Número de colunistas para pular"),
+@router.get("/patrocinadores", response_model=list[UserResponse])
+def list_patrocinadores(
+    limit: int = Query(50, ge=1, le=100, description="Número máximo de patrocinadores (1-100)"),
+    offset: int = Query(0, ge=0, description="Número de patrocinadores para pular"),
     db: Session = Depends(get_db),
-    requester = Depends(require_subadmin_or_master)
+    requester = Depends(require_admin_or_master)
 ):
-    return AuthController.list_colunistas(db, requester, limit, offset)
+    return AuthController.list_patrocinadores(db, requester, limit, offset)
 
 @router.get("/users", response_model=list[UserResponse])
 def list_users(
     limit: int = Query(50, ge=1, le=100, description="Número máximo de usuários (1-100)"),
     offset: int = Query(0, ge=0, description="Número de usuários para pular"),
     db: Session = Depends(get_db),
-    requester = Depends(require_subadmin_or_master)
+    requester = Depends(require_admin_or_master)
 ):
     return AuthController.list_users(db, requester, limit, offset)
 

@@ -199,9 +199,9 @@ class CommentService:
         if not comment:
             raise ValueError("Comentário não encontrado.")
         
-        # Verifica permissões: admin_master, subadmin ou dono do comentário podem deletar
+        # Verifica permissões: admin_master, admin ou dono do comentário podem deletar
         can_delete = (
-            user_role in ["admin_master", "subadmin"] or 
+            user_role in ["admin_master", "admin"] or 
             comment.user_id == user_id
         )
         

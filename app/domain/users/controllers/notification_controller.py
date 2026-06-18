@@ -37,7 +37,7 @@ class NotificationController:
                         profile_photo=related_user.profile_photo
                     ).model_dump()
             
-            # Se tem broadcast_sender_id, busca os dados do admin/subadmin que enviou
+            # Se tem broadcast_sender_id, busca os dados do admin/admin_master que enviou
             if notification.broadcast_sender_id:
                 broadcast_sender = auth_db.query(User).filter(User.id == notification.broadcast_sender_id).first()
                 if broadcast_sender:
@@ -80,7 +80,7 @@ class NotificationController:
                     profile_photo=related_user.profile_photo
                 ).model_dump()
         
-        # Se tem broadcast_sender_id, busca os dados do admin/subadmin que enviou
+        # Se tem broadcast_sender_id, busca os dados do admin/admin_master que enviou
         if notification.broadcast_sender_id:
             from app.domain.auth.models.user_model import User
             broadcast_sender = auth_db.query(User).filter(User.id == notification.broadcast_sender_id).first()

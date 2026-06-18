@@ -7,7 +7,7 @@ import json
 from app.config.admin_db import get_admin_db
 from app.domain.admin.controllers.event_controller import EventController
 from app.core.security.auth_dependency import get_current_user
-from app.core.security.permissions import require_subadmin_or_master
+from app.core.security.permissions import require_admin_or_master
 from app.domain.auth.models.user_model import User
 from app.domain.admin.schemas.event_schema import (
     EventResponseSchema, EventUpdateSchema
@@ -78,7 +78,7 @@ def create_event(
     banner_image: UploadFile = File(None),
     map_images: List[UploadFile] = File(None),  # Múltiplas imagens do mapa (máximo 5)
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
 
     # Validação de datas: não permitir datas no passado
@@ -291,7 +291,7 @@ def update_event(
     map_images: Optional[List[UploadFile]] = File(None),  # Múltiplas imagens do mapa (máximo 5)
     replace_map_images: bool = Form(False),  # Se True, substitui todas as imagens antigas
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master),
+    user: User = Depends(require_admin_or_master),
 ):
 
     # Validação de datas: não permitir datas no passado
@@ -486,7 +486,7 @@ def update_event(
 def delete_event(
     event_id: int,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
 
     try:
@@ -518,7 +518,7 @@ def update_post_approval_requirement(
     event_id: int,
     requires_approval: bool = Query(...),
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """
     Atualiza se o evento requer aprovação de posts.
@@ -536,7 +536,7 @@ def update_post_approval_requirement(
 def get_pending_posts_count(
     event_id: int,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Retorna a quantidade de posts pendentes de um evento"""
     from app.domain.admin.repositories.news_repository import NewsRepository

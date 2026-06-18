@@ -40,9 +40,11 @@ from app.domain.users.routes.downloaded_photo_routes import router as downloaded
 from app.domain.admin.routes.ad_click_routes import router as ad_click_router
 from app.domain.users.routes.event_stand_booking_routes import router as event_stand_booking_router
 from app.domain.admin.routes.event_stand_booking_admin_routes import router as event_stand_booking_admin_router
+from app.domain.admin.routes.campaign_routes import router as campaign_router
 
 # Importar modelos para garantir que SQLAlchemy os registre
 from app.domain.admin.models.ad_click_model import AdClick  # noqa: F401
+from app.domain.admin.models.campaign_model import Campaign  # noqa: F401
 from app.domain.admin.models.ad_view_model import AdView  # noqa: F401
 from app.domain.photo_ai.models.face_search_model import FaceSearch  # noqa: F401
 
@@ -111,6 +113,7 @@ app.include_router(downloaded_photo_router)
 app.include_router(ad_click_router)
 app.include_router(event_stand_booking_router)
 app.include_router(event_stand_booking_admin_router)
+app.include_router(campaign_router)
 
 @app.get("/")
 def root():

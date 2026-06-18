@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from app.core.security.auth_dependency import get_current_user
-from app.core.security.permissions import require_subadmin_or_master
+from app.core.security.permissions import require_admin_or_master
 from app.config.notification_db import get_notification_db
 from app.config.auth_db import get_db
 from app.domain.auth.models.user_model import User
@@ -57,8 +57,8 @@ def broadcast_notification(
     body: BroadcastNotificationRequest,
     notification_db = Depends(get_notification_db),
     auth_db = Depends(get_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
-    """Envia uma notificação para todos os usuários ativos do sistema (apenas admin e subadmin)"""
+    """Envia uma notificação para todos os usuários ativos do sistema (apenas admin e admin_master)"""
     return NotificationController.broadcast(notification_db, auth_db, body, user.id)
 

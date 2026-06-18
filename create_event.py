@@ -98,17 +98,17 @@ def parse_schedule(value: Optional[str]) -> Any:
 
 
 def get_admin_user(auth_db: Session, admin_email: Optional[str]) -> User:
-    query = auth_db.query(User).filter(User.role.in_(["admin_master", "subadmin"]))
+    query = auth_db.query(User).filter(User.role.in_(["admin_master", "admin"]))
 
     if admin_email:
         user = query.filter(User.email == admin_email.strip().lower()).first()
         if not user:
-            raise ValueError(f"Nenhum admin/subadmin encontrado com email: {admin_email}")
+            raise ValueError(f"Nenhum admin encontrado com email: {admin_email}")
         return user
 
     user = query.order_by(User.id.asc()).first()
     if not user:
-        raise ValueError("Nenhum usuario admin_master/subadmin foi encontrado.")
+        raise ValueError("Nenhum usuario admin_master/admin foi encontrado.")
     return user
 
 

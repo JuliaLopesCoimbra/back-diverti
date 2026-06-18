@@ -38,44 +38,44 @@ class AuthController:
         return AuthService.resend_admin_invite(db, email)
 
     @staticmethod
-    def invite_subadmin(db, body, admin_master):
-        return AuthService.invite_subadmin(db, body, admin_master)
+    def invite_admin_user(db, body, admin_master):
+        return AuthService.invite_admin_user(db, body, admin_master)
 
     @staticmethod
-    def invite_colunista(db, body, inviter):
-        return AuthService.invite_colunista(db, body, inviter)
+    def invite_patrocinador(db, body, inviter):
+        return AuthService.invite_patrocinador(db, body, inviter)
 
     @staticmethod
-    def revoke_colunista_access(db, colunista_id: int, revoker):
-        return AuthService.revoke_colunista_access(db, colunista_id, revoker)
+    def revoke_patrocinador_access(db, patrocinador_id: int, revoker):
+        return AuthService.revoke_patrocinador_access(db, patrocinador_id, revoker)
 
     @staticmethod
-    def revoke_subadmin_access(db, subadmin_id: int, admin_master):
-        return AuthService.revoke_subadmin_access(db, subadmin_id, admin_master)
+    def revoke_admin_access(db, admin_id: int, admin_master):
+        return AuthService.revoke_admin_access(db, admin_id, admin_master)
 
     @staticmethod
     def revoke_user_access(db, user_id: int, revoker):
         return AuthService.revoke_user_access(db, user_id, revoker)
 
     @staticmethod
-    def reactivate_colunista_access(db, colunista_id: int, reactivator):
-        return AuthService.reactivate_colunista_access(db, colunista_id, reactivator)
+    def reactivate_patrocinador_access(db, patrocinador_id: int, reactivator):
+        return AuthService.reactivate_patrocinador_access(db, patrocinador_id, reactivator)
 
     @staticmethod
-    def reactivate_subadmin_access(db, subadmin_id: int, admin_master):
-        return AuthService.reactivate_subadmin_access(db, subadmin_id, admin_master)
+    def reactivate_admin_access(db, admin_id: int, admin_master):
+        return AuthService.reactivate_admin_access(db, admin_id, admin_master)
 
     @staticmethod
     def reactivate_user_access(db, user_id: int, reactivator):
         return AuthService.reactivate_user_access(db, user_id, reactivator)
 
     @staticmethod
-    def list_subadmins(db, requester, limit: int = 50, offset: int = 0):
-        return AuthService.list_subadmins(db, requester, limit, offset)
+    def list_admins(db, requester, limit: int = 50, offset: int = 0):
+        return AuthService.list_admins(db, requester, limit, offset)
 
     @staticmethod
-    def list_colunistas(db, requester, limit: int = 50, offset: int = 0):
-        return AuthService.list_colunistas(db, requester, limit, offset)
+    def list_patrocinadores(db, requester, limit: int = 50, offset: int = 0):
+        return AuthService.list_patrocinadores(db, requester, limit, offset)
 
     @staticmethod
     def list_users(db, requester, limit: int = 50, offset: int = 0):
@@ -88,15 +88,15 @@ class AuthController:
     @staticmethod
     def cleanup_expired_tokens(db, batch_size: int = 5000):
         return AuthService.cleanup_expired_tokens(db, batch_size)
-    
+
     @staticmethod
     def complete_profile(db, user_id: int, body, agent: str = None, ip: str = None):
         return AuthService.complete_profile(db, user_id, body, agent, ip)
-    
+
     @staticmethod
     def complete_email(db, user_id: int, body, agent: str = None, ip: str = None):
         return AuthService.complete_email(db, user_id, body, agent, ip)
-    
+
     @staticmethod
     def update_email_by_cpf(db, body, agent: str = None, ip: str = None):
         return AuthService.update_email_by_cpf(db, body.cpf, body.email, agent, ip)

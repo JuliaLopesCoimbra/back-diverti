@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.config.admin_db import get_admin_db
 from app.domain.admin.services.parade_lineup_item_service import ParadeLineupItemService
-from app.core.security.permissions import require_subadmin_or_master
+from app.core.security.permissions import require_admin_or_master
 from app.domain.auth.models.user_model import User
 from app.domain.admin.schemas.parade_lineup_item_schema import (
     ParadeLineupItemResponseSchema
@@ -61,7 +61,7 @@ def create_parade_lineup_item(
     display_order: int = Form(0),
     description: str = Form(None),
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Cria um novo item do lineup de desfile"""
     try:
@@ -175,7 +175,7 @@ def update_parade_lineup_item(
     display_order: int = Form(None),
     description: str = Form(None),
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Atualiza um item do lineup de desfile"""
     try:
@@ -240,7 +240,7 @@ def update_parade_lineup_item(
 def delete_parade_lineup_item(
     parade_lineup_item_id: int,
     db: Session = Depends(get_admin_db),
-    user: User = Depends(require_subadmin_or_master)
+    user: User = Depends(require_admin_or_master)
 ):
     """Deleta um item do lineup de desfile"""
     try:

@@ -5,8 +5,8 @@ class SambaSchoolService:
 
     @staticmethod
     def create(db, data, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem criar escolas")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem criar escolas")
 
         event = EventRepository.get_by_id(db, data["event_id"])
         if not event:
@@ -34,8 +34,8 @@ class SambaSchoolService:
 
     @staticmethod
     def update(db, school_id: int, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem editar escolas de samba")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem editar escolas de samba")
 
         school = SambaSchoolRepository.get_by_id(db, school_id)
         if not school:
@@ -53,8 +53,8 @@ class SambaSchoolService:
     def delete(db, school_id: int, user):
         from datetime import datetime
         
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem deletar escolas de samba")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem deletar escolas de samba")
 
         school = SambaSchoolRepository.get_by_id(db, school_id)
         if not school:

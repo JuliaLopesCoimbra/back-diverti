@@ -6,8 +6,8 @@ class MusicLyricsService:
 
     @staticmethod
     def create(db, data, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem criar músicas")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem criar músicas")
 
         samba_school = SambaSchoolRepository.get_by_id(db, data["samba_school_id"])
         if not samba_school:
@@ -49,8 +49,8 @@ class MusicLyricsService:
 
     @staticmethod
     def update(db, music_id: int, data: dict, user):
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem editar músicas/letras")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem editar músicas/letras")
 
         music = MusicLyricsRepository.get_by_id(db, music_id)
         if not music:
@@ -68,8 +68,8 @@ class MusicLyricsService:
     def delete(db, music_id: int, user):
         from datetime import datetime
         
-        if user.role not in ["admin_master", "subadmin"]:
-            raise PermissionError("Apenas admin master ou subadmin podem deletar músicas/letras")
+        if user.role not in ["admin_master", "admin"]:
+            raise PermissionError("Apenas admin master ou admin podem deletar músicas/letras")
 
         music = MusicLyricsRepository.get_by_id(db, music_id)
         if not music:
