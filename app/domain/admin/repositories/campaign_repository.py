@@ -47,6 +47,25 @@ class CampaignRepository:
         )
 
     @staticmethod
+    def list_pending_campaigns(db: Session) -> list[Campaign]:
+        return (
+            db.query(Campaign)
+            .filter(Campaign.status == "pending")
+            .order_by(Campaign.created_at.desc())
+            .all()
+        )
+
+    @staticmethod
+    def update_campaign_status(db: Session, campaign_id: int, status: str) -> Optional[Campaign]:
+        campaign = db.query(Campaign).filter(Campaign.id == campaign_id).first()
+        if not campaign:
+            return None
+        campaign.status = status
+        db.commit()
+        db.refresh(campaign)
+        return campaign
+
+    @staticmethod
     def list_campaigns_grouped_by_patrocinador(db: Session) -> dict:
         """Returns a dict: {patrocinador_id: [campaigns]}"""
         campaigns = (

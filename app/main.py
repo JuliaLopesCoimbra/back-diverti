@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from sqlalchemy import text
 from app.config.auth_db import SessionLocal
 from app.core.seed.admin_seed import seed_admin
 from app.config import roulette_db
@@ -41,12 +42,20 @@ from app.domain.admin.routes.ad_click_routes import router as ad_click_router
 from app.domain.users.routes.event_stand_booking_routes import router as event_stand_booking_router
 from app.domain.admin.routes.event_stand_booking_admin_routes import router as event_stand_booking_admin_router
 from app.domain.admin.routes.campaign_routes import router as campaign_router
+from app.domain.admin.routes.event_camping_area_routes import router as event_camping_area_router
+from app.domain.admin.routes.event_camping_session_routes import router as event_camping_session_router
+from app.domain.admin.routes.event_camping_booking_admin_routes import router as event_camping_booking_admin_router
+from app.domain.users.routes.event_camping_booking_routes import router as event_camping_booking_router
 
 # Importar modelos para garantir que SQLAlchemy os registre
 from app.domain.admin.models.ad_click_model import AdClick  # noqa: F401
 from app.domain.admin.models.campaign_model import Campaign  # noqa: F401
 from app.domain.admin.models.ad_view_model import AdView  # noqa: F401
 from app.domain.photo_ai.models.face_search_model import FaceSearch  # noqa: F401
+from app.domain.admin.models.event_camping_area_model import EventCampingArea  # noqa: F401
+from app.domain.admin.models.event_camping_session_model import EventCampingSession  # noqa: F401
+from app.domain.admin.models.event_camping_booking_model import EventCampingBooking  # noqa: F401
+from app.domain.admin.models.event_camping_entry_model import EventCampingEntry  # noqa: F401
 
 # Criar tabelas na inicialização
 def init_db():
@@ -114,6 +123,10 @@ app.include_router(ad_click_router)
 app.include_router(event_stand_booking_router)
 app.include_router(event_stand_booking_admin_router)
 app.include_router(campaign_router)
+app.include_router(event_camping_area_router)
+app.include_router(event_camping_session_router)
+app.include_router(event_camping_booking_admin_router)
+app.include_router(event_camping_booking_router)
 
 @app.get("/")
 def root():
@@ -122,6 +135,11 @@ def root():
 @app.on_event("startup")
 def startup():
     init_db()
+
+    with admin_engine.connect() as conn:
+        conn.execute(text("ALTER TABLE event_camping_areas ADD COLUMN IF NOT EXISTS x_position FLOAT"))
+        conn.execute(text("ALTER TABLE event_camping_areas ADD COLUMN IF NOT EXISTS y_position FLOAT"))
+        conn.commit()
 
     db = SessionLocal()
     seed_admin(db)

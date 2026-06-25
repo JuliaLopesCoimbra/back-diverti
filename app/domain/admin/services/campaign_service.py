@@ -38,6 +38,42 @@ class CampaignService:
         return CampaignRepository.list_campaigns_by_patrocinador(db, patrocinador_id, limit, offset)
 
     @staticmethod
+    def list_pending_campaigns(db_admin: Session, db_auth: Session) -> List[PatrocinadorWithCampaigns]:
+        """Retorna campanhas pendentes com dados do patrocinador."""
+        campaigns = CampaignRepository.list_pending_campaigns(db_admin)
+        if not campaigns:
+            return []
+        patrocinador_ids = list({c.patrocinador_id for c in campaigns})
+        users = db_auth.query(User).filter(User.id.in_(patrocinador_ids)).all()
+        users_by_id = {u.id: u for u in users}
+        grouped: dict = {}
+        for c in campaigns:
+            pid = c.patrocinador_id
+            if pid not in grouped:
+                grouped[pid] = []
+            grouped[pid].append(c)
+        result = []
+        for pid, clist in grouped.items():
+            user = users_by_id.get(pid)
+            result.append(PatrocinadorWithCampaigns(
+                patrocinador_id=pid,
+                patrocinador_name=user.name if user else None,
+                patrocinador_email=user.email if user else None,
+                campaigns=[CampaignResponse.model_validate(c) for c in clist],
+            ))
+        return result
+
+    @staticmethod
+    def update_campaign_status(db_admin: Session, campaign_id: int, status: str) -> CampaignResponse:
+        allowed = {"active", "pending", "paused", "finished", "cancelled", "recusado"}
+        if status not in allowed:
+            raise ValueError(f"Status inválido: {status}")
+        campaign = CampaignRepository.update_campaign_status(db_admin, campaign_id, status)
+        if not campaign:
+            raise ValueError("Campanha não encontrada.")
+        return CampaignResponse.model_validate(campaign)
+
+    @staticmethod
     def list_all_campaigns_grouped(
         db_admin: Session,
         db_auth: Session

@@ -14,6 +14,10 @@ from app.domain.admin.schemas.campaign_schema import (
     CampaignResponse,
     PatrocinadorWithCampaigns,
 )
+from pydantic import BaseModel
+
+class StatusUpdateRequest(BaseModel):
+    status: str
 from app.domain.auth.models.user_model import User
 from app.infra.s3_upload import upload_image_to_s3
 
@@ -84,6 +88,35 @@ def upload_creative(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro no upload: {str(e)}")
+
+
+@router.get("/pending", response_model=List[PatrocinadorWithCampaigns])
+def list_pending_campaigns(
+    db_admin: Session = Depends(get_admin_db),
+    db_auth: Session = Depends(get_db),
+    admin_master: User = Depends(require_admin_master),
+):
+    """Admin master lista campanhas pendentes de aprovação."""
+    try:
+        return CampaignController.list_pending(db_admin, db_auth)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao listar pendentes: {str(e)}")
+
+
+@router.patch("/{campaign_id}/status", response_model=CampaignResponse)
+def update_campaign_status(
+    campaign_id: int,
+    body: StatusUpdateRequest,
+    db_admin: Session = Depends(get_admin_db),
+    admin_master: User = Depends(require_admin_master),
+):
+    """Admin master aprova ou rejeita uma campanha."""
+    try:
+        return CampaignController.update_status(db_admin, campaign_id, body.status)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar status: {str(e)}")
 
 
 @router.get("/all", response_model=List[PatrocinadorWithCampaigns])

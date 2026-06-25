@@ -318,17 +318,33 @@ class RekognitionService:
             for match in response['FaceMatches']:
                 external_id = match['Face']['ExternalImageId']
                 nome_completo = self.buscar_nome_completo_s3(external_id, collection_id)
-                
+
                 s3_key = f"{collection_id}/{nome_completo}"
                 image_url = self._gerar_url_assinada_cloudfront(s3_key)
-            
+
                 matches.append({
                     'name': external_id,
                     'similarity': match['Similarity'],
                     'face_id': match['Face']['FaceId'],
-                    'image_url': image_url
+                    'image_url': image_url,
+                    'media_type': 'image',
                 })
-            
+
+                # Verifica se existe vídeo associado (.mp4 com mesmo nome base)
+                video_key = f"{collection_id}/{external_id}.mp4"
+                try:
+                    self.s3.head_object(Bucket=self.bucket_name, Key=video_key)
+                    video_url = self._gerar_url_assinada_cloudfront(video_key)
+                    matches.append({
+                        'name': external_id,
+                        'similarity': match['Similarity'],
+                        'face_id': match['Face']['FaceId'],
+                        'image_url': video_url,
+                        'media_type': 'video',
+                    })
+                except Exception:
+                    pass
+
             return True, face_confidence, matches
             
         except Exception as e:

@@ -34,6 +34,14 @@ class CampaignController:
         return [CampaignResponse.model_validate(c) for c in campaigns]
 
     @staticmethod
+    def list_pending(db_admin: Session, db_auth: Session) -> List[PatrocinadorWithCampaigns]:
+        return CampaignService.list_pending_campaigns(db_admin, db_auth)
+
+    @staticmethod
+    def update_status(db_admin: Session, campaign_id: int, status: str):
+        return CampaignService.update_campaign_status(db_admin, campaign_id, status)
+
+    @staticmethod
     def list_all_grouped(
         db_admin: Session,
         db_auth: Session
