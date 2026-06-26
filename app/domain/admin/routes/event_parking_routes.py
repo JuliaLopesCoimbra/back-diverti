@@ -87,6 +87,56 @@ def admin_list_parking_bookings(
     return EventParkingRepository.get_bookings_by_event(db, event_id)
 
 
+@admin_router.post("/events/{event_id}/parking/generate-from-camping", response_model=list[ParkingSpotResponseSchema])
+def admin_generate_parking_from_camping(
+    event_id: int,
+    db: Session = Depends(get_admin_db),
+    current_user=Depends(require_admin_or_master),
+):
+    from app.domain.admin.models.event_camping_area_model import EventCampingArea
+
+    areas = (
+        db.query(EventCampingArea)
+        .filter(EventCampingArea.event_id == event_id, EventCampingArea.deleted_at.is_(None))
+        .order_by(EventCampingArea.id)
+        .all()
+    )
+    if not areas:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nenhuma área de camping encontrada para este evento")
+
+    # Soft-delete existing spots
+    existing = EventParkingRepository.get_spots_by_event(db, event_id)
+    for spot in existing:
+        EventParkingRepository.soft_delete_spot(db, spot, current_user.id)
+
+    # Build spot list: 1 per camping area, capacity = total_spots, label from area name
+    total_areas = len(areas)
+    cols = min(8, total_areas)
+    rows_count = (total_areas + cols - 1) // cols
+
+    created = []
+    for idx, area in enumerate(areas):
+        col = idx % cols
+        row = idx // cols
+        # Spread evenly on the map (percentage positions)
+        x = round(8 + col * (84 / max(cols - 1, 1)) if cols > 1 else 50, 2)
+        y = round(20 + row * (60 / max(rows_count - 1, 1)) if rows_count > 1 else 50, 2)
+        label = area.name[:6] if len(area.name) > 6 else area.name
+        data = {
+            "event_id": event_id,
+            "label": label,
+            "x_position": x,
+            "y_position": y,
+            "capacity": area.total_spots,
+            "is_active": True,
+            "sort_order": idx,
+            "created_by_id": current_user.id,
+        }
+        created.append(EventParkingRepository.create_spot(db, data))
+
+    return created
+
+
 @admin_router.delete("/parking-bookings/{booking_id}", status_code=status.HTTP_204_NO_CONTENT)
 def admin_cancel_parking_booking(
     booking_id: int,
