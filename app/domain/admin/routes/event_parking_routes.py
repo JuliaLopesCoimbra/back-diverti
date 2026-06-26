@@ -214,12 +214,14 @@ def user_create_parking_booking(
     user: User = Depends(get_current_user),
 ):
     # Must have at least one active camping booking for this event
+    from app.domain.admin.models.event_camping_area_model import EventCampingArea
     has_camping = (
         db.query(EventCampingBooking)
         .join(EventCampingSession, EventCampingBooking.camping_session_id == EventCampingSession.id)
+        .join(EventCampingArea, EventCampingSession.area_id == EventCampingArea.id)
         .filter(
             EventCampingBooking.user_id == user.id,
-            EventCampingSession.event_id == body.event_id,
+            EventCampingArea.event_id == body.event_id,
             EventCampingBooking.cancelled_at.is_(None),
         )
         .first()
