@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -18,13 +20,13 @@ class PlataformaConfigResponse(BaseModel):
 
 
 class PlataformaConfigUpdateRequest(BaseModel):
-    cpc: float | None = None
-    cpv: float | None = None
-    min_radius: float | None = None
-    min_duration: int | None = None
-    min_units: int | None = None
-    max_budget: float | None = None
-    new_sponsors: bool | None = None
-    email_notifications: bool | None = None
-    auto_approve: bool | None = None
-    maintenance_mode: bool | None = None
+    cpc: Optional[float] = None
+    cpv: Optional[float] = None
+    min_radius: Optional[float] = None
+    min_duration: Optional[int] = None
+    min_units: Optional[int] = None
+    max_budget: Optional[float] = None
+    new_sponsors: Optional[bool] = None
+    email_notifications: Optional[bool] = None
+    auto_approve: Optional[bool] = None
+    maintenance_mode: Optional[bool] = None
