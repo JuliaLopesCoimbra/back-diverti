@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.config.admin_db import get_admin_db
-from app.core.security.auth_dependencies import require_admin_or_master
+from app.core.security.permissions import require_admin_or_master
 from app.domain.admin.repositories.event_camping_package_repository import EventCampingPackageRepository
 from app.domain.admin.schemas.event_camping_package_schema import (
     CampingPackageCreateSchema,
