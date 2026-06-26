@@ -50,6 +50,7 @@ from app.domain.admin.routes.restaurant_routes import router as restaurant_route
 from app.domain.users.routes.food_order_routes import router as food_order_router
 from app.domain.admin.routes.plataforma_config_routes import router as plataforma_config_router
 from app.domain.admin.routes.event_camping_package_routes import router as event_camping_package_router, public_router as event_camping_package_public_router
+from app.domain.admin.routes.event_parking_routes import admin_router as event_parking_admin_router, user_router as event_parking_user_router, public_router as event_parking_public_router
 
 # Importar modelos para garantir que SQLAlchemy os registre
 from app.domain.admin.models.ad_click_model import AdClick  # noqa: F401
@@ -66,6 +67,8 @@ from app.domain.admin.models.food_order_model import FoodOrder  # noqa: F401
 from app.domain.admin.models.food_order_item_model import FoodOrderItem  # noqa: F401
 from app.domain.admin.models.plataforma_config_model import PlataformaConfig  # noqa: F401
 from app.domain.admin.models.event_camping_package_model import EventCampingPackage  # noqa: F401
+from app.domain.admin.models.event_parking_spot_model import EventParkingSpot  # noqa: F401
+from app.domain.admin.models.parking_booking_model import ParkingBooking  # noqa: F401
 
 # Criar tabelas na inicialização
 def init_db():
@@ -142,6 +145,9 @@ app.include_router(food_order_router)
 app.include_router(plataforma_config_router)
 app.include_router(event_camping_package_router)
 app.include_router(event_camping_package_public_router)
+app.include_router(event_parking_admin_router)
+app.include_router(event_parking_user_router)
+app.include_router(event_parking_public_router)
 
 @app.get("/")
 def root():
@@ -154,6 +160,7 @@ def startup():
     with admin_engine.connect() as conn:
         conn.execute(text("ALTER TABLE event_camping_areas ADD COLUMN IF NOT EXISTS x_position FLOAT"))
         conn.execute(text("ALTER TABLE event_camping_areas ADD COLUMN IF NOT EXISTS y_position FLOAT"))
+        conn.execute(text("ALTER TABLE events ADD COLUMN IF NOT EXISTS parking_map_image_url VARCHAR(500)"))
         conn.commit()
 
     db = SessionLocal()
