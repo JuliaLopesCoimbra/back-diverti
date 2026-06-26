@@ -24,6 +24,7 @@ class Event(AdminBase):
     location = Column(String(255), nullable=True)
     image_map = Column(String(500), nullable=True)
     camping_map_url = Column(String(500), nullable=True)
+    parking_map_image_url = Column(String(500), nullable=True)
     line_up = Column(Text, nullable=True)
     spotify_playlist_url = Column(String(500), nullable=True)
     requires_post_approval = Column(Boolean, default=True)  # Se True, posts precisam aprovação
