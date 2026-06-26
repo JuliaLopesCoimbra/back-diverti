@@ -100,3 +100,15 @@ class AuthController:
     @staticmethod
     def update_email_by_cpf(db, body, agent: str = None, ip: str = None):
         return AuthService.update_email_by_cpf(db, body.cpf, body.email, agent, ip)
+
+    @staticmethod
+    def create_operador(db, body, creator):
+        return AuthService.create_operador(db, body, creator)
+
+    @staticmethod
+    def list_operadores(db, requester):
+        return AuthService.list_operadores(db, requester)
+
+    @staticmethod
+    def delete_operador(db, operador_id: int, requester):
+        return AuthService.delete_operador(db, operador_id, requester)

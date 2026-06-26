@@ -9,44 +9,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 class RedisClient:
-    """Cliente Redis singleton para cache e rate limiting"""
-    
+    """Cliente Redis stub — desabilitado. Cache e rate limiting são no-ops."""
+
     _instance: Optional['RedisClient'] = None
     _client: Optional[redis.Redis] = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
-    
+
     def __init__(self):
-        if self._client is None:
-            try:
-                if settings.REDIS_URL:
-                    self._client = redis.from_url(
-                        settings.REDIS_URL,
-                        decode_responses=True,
-                        socket_connect_timeout=5,
-                        socket_timeout=5,
-                        retry_on_timeout=True
-                    )
-                else:
-                    self._client = redis.Redis(
-                        host=settings.REDIS_HOST,
-                        port=settings.REDIS_PORT,
-                        db=settings.REDIS_DB,
-                        password=settings.REDIS_PASSWORD,
-                        decode_responses=True,
-                        socket_connect_timeout=5,
-                        socket_timeout=5,
-                        retry_on_timeout=True
-                    )
-                # Testa conexão
-                self._client.ping()
-                print("✅ Redis conectado com sucesso")
-            except Exception as e:
-                print(f"⚠️  Redis não disponível: {e}")
-                self._client = None
+        pass  # Redis desabilitado — não tenta conectar
     
     @property
     def client(self) -> Optional[redis.Redis]:
@@ -204,86 +178,13 @@ class CacheKeys:
 # ===== RATE LIMITING =====
 
 def check_rate_limit(
-    identifier: str, 
-    max_requests: int, 
+    identifier: str,
+    max_requests: int,
     window_seconds: int = 60,
-    critical: bool = False
+    critical: bool = False,
 ) -> tuple[bool, int]:
-    """
-    Verifica rate limit com fallback híbrido quando Redis não está disponível
-    
-    Args:
-        identifier: Identificador único (ex: IP, user_id, email)
-        max_requests: Número máximo de requisições permitidas
-        window_seconds: Janela de tempo em segundos
-        critical: Se True, retorna erro 503 se Redis cair (endpoints críticos).
-                  Se False, permite com alerta (endpoints menos críticos).
-    
-    Returns:
-        (allowed, remaining): Se a requisição é permitida e quantas restam
-    
-    Raises:
-        HTTPException: Se critical=True e Redis não está disponível (503 Service Unavailable)
-    """
-    if not redis_client.is_connected():
-        if critical:
-            # Endpoints críticos: retornar erro 503 para forçar correção do Redis
-            logger.critical(
-                f"🚨 CRÍTICO: Redis não disponível - Rate limiting crítico indisponível para {identifier}",
-                extra={
-                    "identifier": identifier,
-                    "max_requests": max_requests,
-                    "window_seconds": window_seconds,
-                    "severity": "CRITICAL",
-                    "action": "rejecting_request"
-                }
-            )
-            from fastapi import HTTPException
-            raise HTTPException(
-                status_code=503,
-                detail="Serviço temporariamente indisponível. Tente novamente em alguns instantes.",
-                headers={"Retry-After": "60"}
-            )
-        else:
-            # Endpoints menos críticos: permitir com alerta
-            logger.error(
-                f"⚠️ Redis não disponível - Rate limiting desabilitado para {identifier}",
-                extra={
-                    "identifier": identifier,
-                    "max_requests": max_requests,
-                    "window_seconds": window_seconds,
-                    "severity": "WARNING",
-                    "action": "allowing_request"
-                }
-            )
-            return True, max_requests
-    
-    # Redis está disponível - comportamento normal
-    key = f"ratelimit:{identifier}:{window_seconds}"
-    current = redis_client.increment(key)
-    
-    if current is None:
-        # Erro ao incrementar (Redis pode ter caído durante a operação)
-        if critical:
-            logger.critical(f"Erro ao incrementar rate limit no Redis para {identifier}")
-            from fastapi import HTTPException
-            raise HTTPException(
-                status_code=503,
-                detail="Serviço temporariamente indisponível. Tente novamente em alguns instantes.",
-                headers={"Retry-After": "60"}
-            )
-        else:
-            logger.error(f"Erro ao incrementar rate limit no Redis para {identifier} - permitindo requisição")
-            return True, max_requests
-    
-    if current == 1:
-        # Primeira requisição, define TTL
-        redis_client.expire(key, window_seconds)
-    
-    remaining = max(0, max_requests - current)
-    allowed = current <= max_requests
-    
-    return allowed, remaining
+    """Rate limiting desabilitado — sempre permite."""
+    return True, max_requests
 
 
 def rate_limit_by_ip(max_requests: int, window_seconds: int = 60):

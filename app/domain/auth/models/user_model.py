@@ -11,7 +11,8 @@ class User(Base):
     email = Column(String(180), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=True)
     profile_photo = Column(String(500), nullable=True)
-    role = Column(String(20), default="user")  # Valores: "admin_master", "admin", "patrocinador", "user"
+    role = Column(String(20), default="user")  # Valores: "admin_master", "admin", "patrocinador", "operador", "user"
+    restaurant_id = Column(Integer, nullable=True)  # Para operadores: ID do restaurante associado
     is_email_verified = Column(Boolean, default=False)
     status = Column(String(20), default="active")
     

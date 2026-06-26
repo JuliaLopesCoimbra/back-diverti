@@ -542,3 +542,22 @@ def get_pending_posts_count(
     from app.domain.admin.repositories.news_repository import NewsRepository
     count = NewsRepository.count_pending_by_event(db, event_id)
     return {"event_id": event_id, "pending_count": count}
+
+
+@router.patch("/events/{event_id}/camping-map", response_model=EventResponseSchema)
+def upload_camping_map(
+    event_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_admin_db),
+    user: User = Depends(require_admin_or_master),
+):
+    """Faz upload do mapa de camping e salva a URL no evento."""
+    from app.domain.admin.models.event_model import Event
+    event = db.query(Event).filter(Event.id == event_id, Event.deleted_at.is_(None)).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento não encontrado.")
+    url = upload_image_to_s3(image, folder="camping_maps")
+    event.camping_map_url = url
+    db.commit()
+    db.refresh(event)
+    return event

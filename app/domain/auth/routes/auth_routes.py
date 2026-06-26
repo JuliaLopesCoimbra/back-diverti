@@ -4,7 +4,8 @@ from app.config.auth_db import get_db
 from app.core.security.auth_dependency import get_current_user_optional, require_admin
 from app.core.security.permissions import require_admin_master, require_admin_or_master
 from app.domain.auth.schemas.auth_schema import RegisterRequest, LoginRequest, TokenResponse, AdminCreateAdminRequest, \
-    InviteAdminRequest, FirstAccessRequest, ResendAdminInviteRequest, InvitePatrocinadorRequest, UserResponse, AgeVerificationRequest, CompleteProfileRequest, CompleteEmailRequest, CompleteEmailResponse, UpdateEmailByCpfRequest, UpdateEmailByCpfResponse
+    InviteAdminRequest, FirstAccessRequest, ResendAdminInviteRequest, InvitePatrocinadorRequest, UserResponse, AgeVerificationRequest, CompleteProfileRequest, CompleteEmailRequest, CompleteEmailResponse, UpdateEmailByCpfRequest, UpdateEmailByCpfResponse, \
+    OperadorCreateRequest, OperadorResponse
 from app.domain.auth.controllers.auth_controller import AuthController
 from app.domain.auth.schemas.auth_schema import RefreshRequest
 from app.domain.auth.services.auth_service import AuthService
@@ -54,19 +55,28 @@ def resend_admin_invite(
 
 @router.post("/login", response_model=TokenResponse)
 def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
-    # Rate limiting: 5 tentativas de login por minuto por IP (CRÍTICO - retorna 503 se Redis cair)
     ip = request.client.host
-    allowed, remaining = check_rate_limit(f"login:ip:{ip}", max_requests=5, window_seconds=60, critical=True)
+    agent = request.headers.get("user-agent")
+    access, refresh = AuthController.login(db, body, agent, ip)
+    return TokenResponse(access_token=access, refresh_token=refresh)
 
+
+@router.post("/operation-login", response_model=TokenResponse)
+def operation_login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    """Login exclusivo para equipe de operação (cozinha/garçom). Rate limit não-crítico."""
+    ip = request.client.host
+    allowed, _ = check_rate_limit(f"op_login:ip:{ip}", max_requests=10, window_seconds=60, critical=False)
     if not allowed:
-        raise HTTPException(
-            status_code=429,
-            detail="Muitas tentativas de login. Tente novamente em 1 minuto.",
-            headers={"Retry-After": "60", "X-RateLimit-Remaining": str(remaining)}
-        )
+        raise HTTPException(status_code=429, detail="Muitas tentativas. Tente novamente em 1 minuto.")
 
     agent = request.headers.get("user-agent")
     access, refresh = AuthController.login(db, body, agent, ip)
+
+    # Só permite roles de operação
+    from app.core.security.jwt import JWTHandler
+    payload = JWTHandler.decode_token(access)
+    if payload.get("role") not in ("operador", "admin", "admin_master"):
+        raise HTTPException(status_code=403, detail="Conta sem permissão de operação.")
 
     return TokenResponse(access_token=access, refresh_token=refresh)
 
@@ -292,3 +302,30 @@ def cleanup_expired_tokens(
     Requer permissão de admin.
     """
     return AuthController.cleanup_expired_tokens(db, batch_size)
+
+
+@router.post("/admin/operadores", response_model=OperadorResponse, status_code=201)
+def create_operador(
+    body: OperadorCreateRequest,
+    db: Session = Depends(get_db),
+    creator = Depends(require_admin_or_master),
+):
+    """Admin cria conta de operador (cozinha/garçom) diretamente com senha"""
+    return AuthController.create_operador(db, body, creator)
+
+
+@router.get("/admin/operadores", response_model=list[OperadorResponse])
+def list_operadores(
+    db: Session = Depends(get_db),
+    requester = Depends(require_admin_or_master),
+):
+    return AuthController.list_operadores(db, requester)
+
+
+@router.delete("/admin/operadores/{operador_id}", status_code=204)
+def delete_operador(
+    operador_id: int,
+    db: Session = Depends(get_db),
+    requester = Depends(require_admin_or_master),
+):
+    AuthController.delete_operador(db, operador_id, requester)

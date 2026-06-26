@@ -375,5 +375,44 @@ class UserResponse(BaseModel):
     created_at: datetime
     is_email_verified: bool
 
+
+class OperadorCreateRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    restaurant_id: Optional[int] = None
+
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        return validate_full_name(v)
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        return validate_email_tld(v)
+
+    @field_validator('password')
+    @classmethod
+    def validate_pwd(cls, v: str) -> str:
+        try:
+            validate_password(v)
+        except HTTPException as e:
+            raise ValueError(e.detail)
+        return v
+
+
+class OperadorResponse(BaseModel):
+    id: int
+    name: Optional[str]
+    email: str
+    role: str
+    status: str
+    restaurant_id: Optional[int] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
     class Config:
         from_attributes = True

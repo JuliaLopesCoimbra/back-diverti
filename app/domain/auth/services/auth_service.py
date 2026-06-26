@@ -104,54 +104,59 @@ class AuthService:
         if not Hash.verify(data.password, user.password_hash):
             raise HTTPException(status_code=401, detail="Credenciais inválidas.")
 
-        # Verificar se precisa confirmar idade - se sim, retornar token temporário
-        if not user.age_verified:
-            # Criar token temporário para verificação de idade
-            temp_token = JWTHandler.create_access_token({
-                "sub": str(user.id),
-                "role": user.role,
-                "temp": True
-            }, expires_minutes=10)
+        # Verificações de perfil apenas para usuários comuns
+        if user.role == "user":
+            # Verificar se precisa confirmar idade - se sim, retornar token temporário
+            if not user.age_verified:
+                # Criar token temporário para verificação de idade
+                temp_token = JWTHandler.create_access_token({
+                    "sub": str(user.id),
+                    "role": user.role,
+                    "temp": True
+                }, expires_minutes=10)
 
-            # Retornar erro especial com token temporário no detail (formato JSON string)
-            import json
-            error_detail = {
-                "message": "Você precisa confirmar que é maior de idade antes de acessar o sistema.",
-                "requires_age_verification": True,
-                "temp_token": temp_token
-            }
-            raise HTTPException(
-                status_code=403,
-                detail=json.dumps(error_detail)
-            )
+                # Retornar erro especial com token temporário no detail (formato JSON string)
+                import json
+                error_detail = {
+                    "message": "Você precisa confirmar que é maior de idade antes de acessar o sistema.",
+                    "requires_age_verification": True,
+                    "temp_token": temp_token
+                }
+                raise HTTPException(
+                    status_code=403,
+                    detail=json.dumps(error_detail)
+                )
 
-        # Verificar se precisa completar perfil (CPF, sexo e termos)
-        if not user.cpf or not user.gender or not user.lgpd_accepted or not user.age_terms_accepted:
-            # Criar token temporário para completar perfil
-            temp_token = JWTHandler.create_access_token({
-                "sub": str(user.id),
-                "role": user.role,
-                "temp": True,
-                "requires_profile_completion": True
-            }, expires_minutes=30)
+            # Verificar se precisa completar perfil (CPF, sexo e termos)
+            if not user.cpf or not user.gender or not user.lgpd_accepted or not user.age_terms_accepted:
+                # Criar token temporário para completar perfil
+                temp_token = JWTHandler.create_access_token({
+                    "sub": str(user.id),
+                    "role": user.role,
+                    "temp": True,
+                    "requires_profile_completion": True
+                }, expires_minutes=30)
 
-            # Retornar erro especial com token temporário no detail (formato JSON string)
-            import json
-            error_detail = {
-                "message": "Você precisa completar seu perfil antes de acessar o sistema.",
-                "requires_profile_completion": True,
-                "temp_token": temp_token
-            }
-            raise HTTPException(
-                status_code=403,
-                detail=json.dumps(error_detail)
-            )
+                # Retornar erro especial com token temporário no detail (formato JSON string)
+                import json
+                error_detail = {
+                    "message": "Você precisa completar seu perfil antes de acessar o sistema.",
+                    "requires_profile_completion": True,
+                    "temp_token": temp_token
+                }
+                raise HTTPException(
+                    status_code=403,
+                    detail=json.dumps(error_detail)
+                )
 
-        access = JWTHandler.create_access_token({
+        token_payload = {
             "sub": str(user.id),
             "role": user.role,
-            "name": user.name
-        })
+            "name": user.name,
+        }
+        if user.role == "operador" and getattr(user, "restaurant_id", None):
+            token_payload["restaurant_id"] = user.restaurant_id
+        access = JWTHandler.create_access_token(token_payload)
 
         # Se remember_me estiver marcado, refresh token expira em 90 dias
         # Caso contrário, expira em 7 dias (sessão)
@@ -837,3 +842,53 @@ class AuthService:
         return {
             "message": "Email atualizado com sucesso! Verifique sua caixa de entrada para confirmar o novo email."
         }
+
+    @staticmethod
+    def create_operador(db, data, creator):
+        """Admin ou admin_master podem criar contas de operador (cozinha/garçom)"""
+        if creator.role not in ("admin", "admin_master"):
+            raise HTTPException(status_code=403, detail="Apenas admins podem criar operadores.")
+
+        existing = AuthRepository.get_user_by_email(db, data.email)
+        if existing:
+            raise HTTPException(status_code=400, detail="Email já cadastrado.")
+
+        password_hash = Hash.hash_password(data.password)
+        user = AuthRepository.create_user(
+            db=db,
+            name=data.name,
+            email=data.email,
+            password_hash=password_hash,
+            role="operador",
+            invited_by_id=creator.id,
+        )
+        user.is_email_verified = True
+        user.age_verified = True
+        if getattr(data, "restaurant_id", None):
+            user.restaurant_id = data.restaurant_id
+        db.commit()
+        db.refresh(user)
+        return user
+
+    @staticmethod
+    def list_operadores(db, requester):
+        """Lista operadores - admin e master podem ver"""
+        from app.domain.auth.models.user_model import User
+        if requester.role not in ("admin", "admin_master"):
+            raise HTTPException(status_code=403, detail="Apenas admins podem listar operadores.")
+        return db.query(User).filter(User.role == "operador", User.status == "active").order_by(User.created_at.desc()).all()
+
+    @staticmethod
+    def delete_operador(db, operador_id: int, requester):
+        """Desativa conta de operador"""
+        if requester.role not in ("admin", "admin_master"):
+            raise HTTPException(status_code=403, detail="Apenas admins podem remover operadores.")
+        operador = AuthRepository.get_user_by_id(db, operador_id)
+        if not operador or operador.role != "operador":
+            raise HTTPException(status_code=404, detail="Operador não encontrado.")
+        operador.status = "inactive"
+        operador.deactivated_by_id = requester.id
+        operador.deactivated_at = datetime.utcnow()
+        db.commit()
+        invalidate_user_cache(operador_id)
+        return {"message": "Operador desativado com sucesso."}

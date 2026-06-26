@@ -132,6 +132,7 @@ class EventCampingBookingService:
                     user_name=user.name if user and user.name else "Usuario",
                     user_email=user.email if user else "",
                     user_cpf=user.cpf if user else None,
+                    user_profile_photo=user.profile_photo if user else None,
                     created_at=booking.created_at,
                     checked_in_at=entry.created_at if entry else None,
                     checked_in_by_admin_id=entry.admin_id if entry else None,

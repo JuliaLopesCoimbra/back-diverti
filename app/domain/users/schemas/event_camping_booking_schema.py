@@ -59,6 +59,7 @@ class AdminCampingSessionBookingResponseSchema(BaseModel):
     user_name: str
     user_email: str
     user_cpf: Optional[str] = None
+    user_profile_photo: Optional[str] = None
     created_at: datetime
     checked_in_at: Optional[datetime] = None
     checked_in_by_admin_id: Optional[int] = None

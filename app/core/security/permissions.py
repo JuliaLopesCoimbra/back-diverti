@@ -87,3 +87,13 @@ def require_patrocinador_or_above(user: User = Depends(get_current_user)):
             detail="Apenas patrocinadores, admins ou admin master podem acessar este recurso."
         )
     return user
+
+
+def require_operador_or_above(user: User = Depends(get_current_user)):
+    """Operador, admin ou admin_master podem acessar (rotas de cozinha/garçom)"""
+    if user.role not in ("operador", "admin", "admin_master"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito à equipe de operação."
+        )
+    return user

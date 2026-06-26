@@ -40,6 +40,7 @@ class EventResponseSchema(BaseModel):
     location: Optional[str] = None
     banner_image: Optional[str] = None
     image_map: Optional[str] = None
+    camping_map_url: Optional[str] = None
     line_up: Optional[str] = None
     spotify_playlist_url: Optional[str] = None
     starts_at: Optional[datetime] = None

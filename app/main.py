@@ -46,6 +46,10 @@ from app.domain.admin.routes.event_camping_area_routes import router as event_ca
 from app.domain.admin.routes.event_camping_session_routes import router as event_camping_session_router
 from app.domain.admin.routes.event_camping_booking_admin_routes import router as event_camping_booking_admin_router
 from app.domain.users.routes.event_camping_booking_routes import router as event_camping_booking_router
+from app.domain.admin.routes.restaurant_routes import router as restaurant_router
+from app.domain.users.routes.food_order_routes import router as food_order_router
+from app.domain.admin.routes.plataforma_config_routes import router as plataforma_config_router
+from app.domain.admin.routes.event_camping_package_routes import router as event_camping_package_router, public_router as event_camping_package_public_router
 
 # Importar modelos para garantir que SQLAlchemy os registre
 from app.domain.admin.models.ad_click_model import AdClick  # noqa: F401
@@ -56,6 +60,12 @@ from app.domain.admin.models.event_camping_area_model import EventCampingArea  #
 from app.domain.admin.models.event_camping_session_model import EventCampingSession  # noqa: F401
 from app.domain.admin.models.event_camping_booking_model import EventCampingBooking  # noqa: F401
 from app.domain.admin.models.event_camping_entry_model import EventCampingEntry  # noqa: F401
+from app.domain.admin.models.restaurant_model import Restaurant  # noqa: F401
+from app.domain.admin.models.menu_item_model import MenuItem  # noqa: F401
+from app.domain.admin.models.food_order_model import FoodOrder  # noqa: F401
+from app.domain.admin.models.food_order_item_model import FoodOrderItem  # noqa: F401
+from app.domain.admin.models.plataforma_config_model import PlataformaConfig  # noqa: F401
+from app.domain.admin.models.event_camping_package_model import EventCampingPackage  # noqa: F401
 
 # Criar tabelas na inicialização
 def init_db():
@@ -127,6 +137,11 @@ app.include_router(event_camping_area_router)
 app.include_router(event_camping_session_router)
 app.include_router(event_camping_booking_admin_router)
 app.include_router(event_camping_booking_router)
+app.include_router(restaurant_router)
+app.include_router(food_order_router)
+app.include_router(plataforma_config_router)
+app.include_router(event_camping_package_router)
+app.include_router(event_camping_package_public_router)
 
 @app.get("/")
 def root():
