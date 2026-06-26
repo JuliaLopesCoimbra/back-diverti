@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -60,7 +61,7 @@ class FoodOrderService:
         return orders
 
     @staticmethod
-    def get_restaurant_orders(db: Session, restaurant_id: int, statuses: list[str] | None = None):
+    def get_restaurant_orders(db: Session, restaurant_id: int, statuses: Optional[list] = None):
         return FoodOrderRepository.get_by_restaurant(db, restaurant_id, statuses=statuses)
 
     @staticmethod

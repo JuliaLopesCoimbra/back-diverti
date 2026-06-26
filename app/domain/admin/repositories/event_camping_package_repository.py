@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -29,7 +30,7 @@ class EventCampingPackageRepository:
         )
 
     @staticmethod
-    def get(db: Session, package_id: int) -> EventCampingPackage | None:
+    def get(db: Session, package_id: int) -> Optional[EventCampingPackage]:
         return db.query(EventCampingPackage).filter(
             EventCampingPackage.id == package_id,
             EventCampingPackage.deleted_at.is_(None),

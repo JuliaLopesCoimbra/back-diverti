@@ -39,7 +39,7 @@ class FoodOrderRepository:
         )
 
     @staticmethod
-    def get_by_restaurant(db: Session, restaurant_id: int, statuses: list[str] | None = None) -> list[FoodOrder]:
+    def get_by_restaurant(db: Session, restaurant_id: int, statuses: Optional[list] = None) -> list[FoodOrder]:
         q = (
             db.query(FoodOrder)
             .options(joinedload(FoodOrder.items))
