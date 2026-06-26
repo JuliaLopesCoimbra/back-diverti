@@ -62,6 +62,21 @@ def create_camping_session(
 
 
 @router.get(
+    "/events/{event_id}/camping/sessions",
+    response_model=List[EventCampingSessionResponseSchema],
+)
+def get_camping_sessions_by_event(
+    event_id: int,
+    db: Session = Depends(get_admin_db),
+    user: User = Depends(require_admin_or_master),
+):
+    try:
+        return EventCampingSessionService.get_sessions_by_event(db, event_id)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@router.get(
     "/camping-areas/{area_id}/sessions",
     response_model=List[EventCampingSessionResponseSchema],
 )

@@ -78,6 +78,26 @@ class EventCampingSessionService:
         ]
 
     @staticmethod
+    def get_sessions_by_event(db, event_id: int):
+        areas = EventCampingAreaRepository.get_by_event(db, event_id)
+        if not areas:
+            return []
+        area_ids = [a.id for a in areas]
+        sessions = EventCampingSessionRepository.get_by_area_ids(db, area_ids)
+        session_ids = [s.id for s in sessions]
+        booking_counts = EventCampingBookingRepository.count_active_grouped_by_session(db, session_ids)
+        entry_counts = EventCampingEntryRepository.count_grouped_by_session(db, session_ids)
+        return [
+            EventCampingSessionService._serialize_with_metrics(
+                db,
+                session,
+                quantity_bookings=booking_counts.get(session.id, 0),
+                quantity_entries=entry_counts.get(session.id, 0),
+            )
+            for session in sessions
+        ]
+
+    @staticmethod
     def get_session_by_id(db, session_id: int):
         session = EventCampingSessionRepository.get(db, session_id)
         if not session:
