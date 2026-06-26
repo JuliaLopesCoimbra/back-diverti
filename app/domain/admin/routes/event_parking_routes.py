@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -163,6 +163,24 @@ def admin_update_parking_map_image(
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado")
     event.parking_map_image_url = body.parking_map_image_url
+    db.commit()
+    return {"parking_map_image_url": event.parking_map_image_url}
+
+
+@admin_router.patch("/events/{event_id}/parking-map")
+def admin_upload_parking_map(
+    event_id: int,
+    image: UploadFile = File(...),
+    db: Session = Depends(get_admin_db),
+    current_user=Depends(require_admin_or_master),
+):
+    from app.domain.admin.models.event_model import Event
+    from app.infra.s3_upload import upload_image_to_s3
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evento não encontrado")
+    url = upload_image_to_s3(image, folder="parking_maps")
+    event.parking_map_image_url = url
     db.commit()
     return {"parking_map_image_url": event.parking_map_image_url}
 
